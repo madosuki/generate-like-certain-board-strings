@@ -242,11 +242,11 @@
     (update-hmac hmac bytes)
     (byte-array-to-hex-string (hmac-digest hmac))))
 
-  ;; generate trip
+
 (defun generate-trip (key &optional (char-code "ASCII"))
   (subseq (string-to-base64-string (sha1 (escape-sql-query key) char-code)) 0 12))
 
-;; generate id
+;; this solt is sample. don't use production.
 (defvar *solt* "wqk0SZoDaZioQbuYzCM3mRBDFbj8FD9sx3ZX34wwhnMjtdAIM2tqonirJ7o8NuDpPkFIFbAacZYTsBRHzjmagGpZZb6aAZVvk5AcWJXWGRdTZlpo7vuXF3zvg1xp9yp0")
 
 (defmacro generate-target-string (ip date solt)
