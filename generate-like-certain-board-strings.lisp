@@ -96,7 +96,7 @@
           (let ((check (subseq x 1 (- (length x) 1))))
             (if (null check)
                 (return-from remove-space-in-head-and-end-of-line "")
-                (return-from remove-space-in-head-and-end-of-line (subseq x 1 (- (length x) 1)))))))
+                (return-from remove-space-in-head-and-end-of-line check)))))
     result))
 
 (defmacro check-2chan-name-spcecial-char (target)
