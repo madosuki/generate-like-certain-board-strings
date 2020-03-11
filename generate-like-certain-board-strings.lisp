@@ -13,9 +13,53 @@
    #:replace-other-line-to-lf
    #:shape-text
    #:replace-not-available-char-when-cp932
-   #:escape-sql-query))
+   #:escape-sql-query
+   #:apply-dice))
 
 (in-package :generate-like-certain-board-strings)
+
+(defun dice (dice-num max-num)
+  (labels ((dice-function (d-n m-num &optional (result nil) (count 0))
+             (if (= count d-n)
+                 result
+                 (let ((dice-result (1+ (ironclad:strong-random m-num))))
+                   (if (listp result)
+                       (dice-function d-n m-num (append result (list dice-result)) (1+ count))
+                       (dice-function d-n m-num (list dice-result) (1+ count)))))))
+    (dice-function dice-num max-num)))
+
+(defun generate-dice-string (d-n m-num dice-result-list)
+  (let ((dice-result-string ""))
+    (if (> d-n 1)
+        (progn
+          (dolist (x dice-result-list)
+            (setq dice-result-string
+                  (concatenate 'string dice-result-string
+                               (if (string= dice-result-string "") "" "+")
+                               (write-to-string x))))
+          (setq dice-result-string
+                (concatenate 'string
+                             (write-to-string (reduce #'+ dice-result-list))
+                             "(" dice-result-string ")")))
+        (setq dice-result-string (write-to-string (car dice-result-list))))
+    (concatenate 'string "[" (write-to-string d-n) "D" (write-to-string m-num) ":" dice-result-string "]")))
+
+(defun apply-dice (text &optional (is-in-name nil))
+  (multiple-value-bind (s e group)
+      (ppcre:scan "!(\\d)[dD](\\d)" text)
+    (unless s
+      (return-from apply-dice text))
+    (let* ((left-pos (aref group 0))
+           (left (parse-integer (subseq text left-pos (1+ left-pos)) :junk-allowed t))
+           (right-pos (aref group 1))
+           (right (parse-integer (subseq text right-pos (1+ right-pos)) :junk-allowed t)))
+      (unless (and (null left) (null right))
+        (let ((tmp (generate-dice-string left right (dice left right)))
+              (begin-tag (if is-in-name "" "<b>"))
+              (end-tag (if is-in-name "" "</b>")))
+          (apply-dice
+           (concatenate 'string (subseq text 0 s) begin-tag tmp end-tag (subseq text e))
+           is-in-name))))))
 
 (defmacro char-to-reference-string (c)
   `(format nil "&#~A;" (char-code ,c)))
