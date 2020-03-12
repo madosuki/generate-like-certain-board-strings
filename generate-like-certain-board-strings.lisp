@@ -28,6 +28,22 @@
                        (dice-function d-n m-num (list dice-result) (1+ count)))))))
     (dice-function dice-num max-num)))
 
+(defun generate-dice-string (d-n m-num dice-result-list)
+  (let ((dice-result-string ""))
+    (if (> d-n 1)
+        (progn
+          (dolist (x dice-result-list)
+            (setq dice-result-string
+                  (concatenate 'string dice-result-string
+                               (if (string= dice-result-string "") "" "+")
+                               (write-to-string x))))
+          (setq dice-result-string
+                (concatenate 'string
+                             (write-to-string (reduce #'+ dice-result-list))
+                             "(" dice-result-string ")")))
+        (setq dice-result-string (write-to-string (car dice-result-list))))
+    (concatenate 'string "[" (write-to-string d-n) "D" (write-to-string m-num) ":" dice-result-string "]")))
+
 (defun search-num-on-dice-strings (s)
   (let ((left-num-list (list nil))
         (right-num-list (list nil))
