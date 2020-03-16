@@ -291,9 +291,9 @@
   (- universal-time (encode-universal-time 0 0 0 1 1 1970 0)))
 
 ;; get formated current datetime from universal-time.
-(defun get-current-datetime (universal-time diff)
+(defun get-current-datetime (universal-time &optional (is-diff nil) (diff 0))
   (multiple-value-bind (second minute hour date month year day daylight-p zone)
-      (decode-universal-time universal-time diff)
+      (if is-diff (decode-universal-time universal-time diff) (decode-universal-time universal-time))
     (declare (ignore day daylight-p zone))
     (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0D" year month date hour minute second)))
 
