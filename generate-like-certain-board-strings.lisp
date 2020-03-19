@@ -18,57 +18,67 @@
 
 (in-package :generate-like-certain-board-strings)
 
+(defmacro set-extracted-text ((extracted-list pos-list s regex-string begin-tag-start begin-tag-end end-tag &optional (forward 0) (string-prefix "")) &body body)
+  (let ((extracted-text (gensym))
+        (tag-with-string (gensym))
+        (start (gensym))
+        (end (gensym))
+        (pos-cons (gensym)))
+    `(let ((,extracted-list (list nil))
+           (,pos-list (list nil)))
+       (ppcre:do-matches (,start ,end ,regex-string ,s)
+         (let* ((,extracted-text (subseq ,s (+ ,forward ,start) ,end))
+                (,tag-with-string (concatenate 'string
+                                               ,begin-tag-start
+                                               ,extracted-text
+                                               ,begin-tag-end
+                                               ,string-prefix
+                                               ,extracted-text
+                                               ,end-tag))
+                (,pos-cons (cons ,start ,end)))
+           (push ,tag-with-string ,extracted-list)
+           (push ,pos-cons ,pos-list)))
+       ,@body)))
+
 (defun replace-http-or-https-url-to-a-tag-with-string (s)
-  (let ((url-list (list nil))
-        (url-pos (list nil))
-        (previous-end 0)
+  (let ((previous-end 0)
         (str-list (list nil))
         (count 0))
-    (ppcre:do-matches (start end "https*://[a-zA-Z0-9%\+./-]+" s)
-      (let* ((url (subseq s start end))
-             (str (concatenate 'string "<a href=\"" url "\">" url "</a>")))
-        (push str url-list)
-        (push (cons start end) url-pos)))
-    (unless (car url-list)
-      (return-from replace-http-or-https-url-to-a-tag-with-string s))
-    (setq url-list (cdr (nreverse url-list)))
-    (setq url-pos (cdr (nreverse url-pos)))
-    (dolist (x url-pos)
-      (let ((start (car x))
-            (end (cdr x)))
-        (push (subseq s previous-end start) str-list)
-        (push (nth count url-list) str-list)
-        (setq previous-end end)
-        (incf count)))
-    (when (/= previous-end (length s))
-      (push (subseq s previous-end (length s)) str-list))
-    (setq str-list (cdr (nreverse str-list)))
-    (format nil "~{~A~}" str-list)))
+    (set-extracted-text (url-list url-pos s "https*://[a-zA-Z0-9%\+./-]+" "<a href=\"" "\">" "</a>")
+                        (unless (car url-list)
+                          (return-from replace-http-or-https-url-to-a-tag-with-string s))
+                        (setq url-list (cdr (nreverse url-list)))
+                        (setq url-pos (cdr (nreverse url-pos)))
+                        (dolist (x url-pos)
+                          (let ((start (car x))
+                                (end (cdr x)))
+                            (push (subseq s previous-end start) str-list)
+                            (push (nth count url-list) str-list)
+                            (setq previous-end end)
+                            (incf count)))
+                        (when (/= previous-end (length s))
+                          (push (subseq s previous-end (length s)) str-list))
+                        (setq str-list (cdr (nreverse str-list)))
+                        (format nil "~{~A~}" str-list))))
 
 (defun create-reply-link (s)
-  (let ((linked-list (list nil))
-        (matched-pos-list (list nil))
-        (result "")
+  (let ((result "")
         (previous-end 0)
         (count 0))
-    (ppcre:do-matches (start end "&gt;&gt;\\d{1,5}" s)
-      (let* ((number (subseq s (+ 8 start) end))
-             (url (concatenate 'string "<a href=\"#" number "\">" (subseq s start end) "</a>")))
-        (push url linked-list)
-        (push (cons start end) matched-pos-list)))
-    (unless (car linked-list)
-      (return-from create-reply-link s))
-    (setq linked-list (cdr (nreverse linked-list)))
-    (setq matched-pos-list (cdr (nreverse matched-pos-list)))
-    (dolist (x matched-pos-list)
-      (let ((start (car x))
-            (end (cdr x)))
-        (setq result (concatenate 'string result (subseq s previous-end start) (nth count linked-list)))
-        (incf count)
-        (setq previous-end end)))
-    (when (and (/= previous-end 0) (/= previous-end (length s)))
-      (setq result (concatenate 'string result (subseq s previous-end (length s)))))
-    result))
+    (set-extracted-text (linked-list matched-pos-list s "&gt;&gt;\\d{1,5}" "<a href=\"#" "\">" "</a>" 8 "&gt;&gt;")
+                        (unless (car linked-list)
+                          (return-from create-reply-link s))
+                        (setq linked-list (cdr (nreverse linked-list)))
+                        (setq matched-pos-list (cdr (nreverse matched-pos-list)))
+                        (dolist (x matched-pos-list)
+                          (let ((start (car x))
+                                (end (cdr x)))
+                            (setq result (concatenate 'string result (subseq s previous-end start) (nth count linked-list)))
+                            (incf count)
+                            (setq previous-end end)))
+                        (when (and (/= previous-end 0) (/= previous-end (length s)))
+                          (setq result (concatenate 'string result (subseq s previous-end (length s)))))
+                        result)))
 
 (defun dice (dice-num max-num)
   (labels ((dice-function (d-n m-num &optional (result nil) (count 0))
@@ -107,8 +117,8 @@
           (if is-end-of-left
               (push x right-num-list)
               (push x left-num-list))))
-    (setq left-num-list (cdr (reverse left-num-list)))
-    (setq right-num-list (cdr (reverse right-num-list)))
+    (setq left-num-list (cdr (nreverse left-num-list)))
+    (setq right-num-list (cdr (nreverse right-num-list)))
     (values
      (parse-integer (coerce left-num-list 'string) :junk-allowed t)
      (parse-integer (coerce right-num-list 'string) :junk-allowed t))))
@@ -140,7 +150,7 @@
 
 (defun escape-sql-query (text)
   (flet ((convert-table (c)
-           (if (or (equal #\" c) (equal #\' c) (equal #\( c) (equal #\) c) (equal #\= c) (equal #\: c) (equal #\\ c))
+           (if (or (equal #\" c) (equal #\' c) (equal #\( c) (equal #\) c) (equal #\= c) (equal #\\ c))
                (char-to-reference-string c)
                (string c))))
     (let ((result ""))
@@ -238,8 +248,8 @@
           (push x right)
           (push (check-2chan-name-spcecial-char x) left)))
     (if is-trip
-        (list (coerce (cdr (reverse left)) 'string) (coerce (cdr (reverse right)) 'string))
-        (list (coerce (cdr (reverse left)) 'string)))))
+        (list (coerce (cdr (nreverse left)) 'string) (coerce (cdr (nreverse right)) 'string))
+        (list (coerce (cdr (nreverse left)) 'string)))))
 
 (defun separate-trip-from-dat (str)
   (let ((pos (cl-ppcre:scan "</b>" str)))
