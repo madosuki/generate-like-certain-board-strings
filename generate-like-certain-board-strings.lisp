@@ -170,7 +170,7 @@
 (defun replace-not-available-char-when-cp932 (text)
   (flet ((replace-char-to-character-references (c)
            (let ((tmp (convert-char-in-reference-to-html-special-chars-table c)))
-             (if (equal c tmp)
+             (if (not (equal c tmp))
                  (format nil "&#~A;" (char-code c))
                  tmp))))
     (let ((result ""))
@@ -181,7 +181,7 @@
             (setq result (concatenate 'string result (replace-char-to-character-references x))))
           (:no-error (c)
             (declare (ignore c))
-            (setq result (concatenate 'string result (replace-char-to-character-references x))))))
+            (setq result (concatenate 'string result (string x))))))
       result)))
 
 (defun shape-text (text)
@@ -191,7 +191,6 @@
         (dolist (x tmp)
           (setq result (format nil "~A ~A <br>" result x)))
         (setq result (format nil " ~A <br>" (car tmp))))
-    (format t "~%from shape text: ~A~%previous: ~A~%" result text)
     result))
 
 (defun replace-other-line-to-lf (text)
