@@ -47,8 +47,10 @@
     (set-extracted-text (url-list url-pos s "https*://[a-zA-Z0-9%\+./-]+" "<a href=\"" "\">" "</a>")
                         (unless (car url-list)
                           (return-from replace-http-or-https-url-to-a-tag-with-string s))
-                        (setq url-list (nreverse url-list))
-                        (setq url-pos (nreverse url-pos))
+                        (nreverse url-list)
+                        (nreverse url-pos)
+                        ;; (setq url-list (nreverse url-list))
+                        ;; (setq url-pos (nreverse url-pos))
                         (dolist (x url-pos)
                           (let ((start (car x))
                                 (end (cdr x)))
@@ -58,8 +60,7 @@
                             (incf count)))
                         (when (/= previous-end (length s))
                           (push (subseq s previous-end (length s)) str-list))
-                        (setq str-list (nreverse str-list))
-                        (format nil "~{~A~}" str-list))))
+                        (format nil "~{~A~}" (nreverse str-list)))))
 
 (defun create-reply-link (s)
   (let ((result "")
@@ -68,8 +69,10 @@
     (set-extracted-text (linked-list matched-pos-list s "&gt;&gt;\\d{1,5}" "<a href=\"#" "\">" "</a>" 8 "&gt;&gt;")
                         (unless (car linked-list)
                           (return-from create-reply-link s))
-                        (setq linked-list (nreverse linked-list))
-                        (setq matched-pos-list (nreverse matched-pos-list))
+                        (nreverse linked-list)
+                        (nreverse matched-pos-list)
+                        ;; (setq linked-list (nreverse linked-list))
+                        ;; (setq matched-pos-list (nreverse matched-pos-list))
                         (dolist (x matched-pos-list)
                           (let ((start (car x))
                                 (end (cdr x)))
@@ -117,6 +120,8 @@
           (if is-end-of-left
               (push x right-num-list)
               (push x left-num-list))))
+    ;; (nreverse left-num-list)
+    ;; (nreverse right-num-list)
     (setq left-num-list (nreverse left-num-list))
     (setq right-num-list (nreverse right-num-list))
     (values
