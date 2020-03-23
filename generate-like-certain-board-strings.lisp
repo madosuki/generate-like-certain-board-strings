@@ -14,7 +14,8 @@
    #:shape-text
    #:replace-not-available-char-when-cp932
    #:escape-sql-query
-   #:apply-dice))
+   #:apply-dice
+   #:sha256))
 
 (in-package :generate-like-certain-board-strings)
 
@@ -370,34 +371,51 @@
     (declare (ignore day daylight-p zone))
     (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0D" year month date hour minute second)))
 
+(defmacro make-hash-string (&key target-string hash-type char-code)
+  `(ironclad:byte-array-to-hex-string
+    (ironclad:digest-sequence (intern ,hash-type)
+                              (flexi-streams:string-to-octets ,target-string :external-format (intern ,char-code)))))
+
+(defun create-hmac (target-string target-key hmac-type &optional (target-key-char-code "ASCII") (value-char-code "ASCII"))
+  (let ((hmac (ironclad:make-hmac
+               (flexi-streams:string-to-octets target-key :external-format (intern target-key-char-code))
+               hmac-type))
+        (bytes (flexi-streams:string-to-octets target-string :external-format (intern value-char-code))))
+      (ironclad:update-hmac hmac bytes)
+    (ironclad:byte-array-to-hex-string (ironclad:hmac-digest hmac))))
+
 (defun sha1 (str &optional (char-code "ASCII"))
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-sequence :sha1
-                             (flexi-streams:string-to-octets str :external-format (intern char-code)))))
+  (make-hash-string :target-string str :hash-type "sha1" :char-code char-code))
 
 (defun sha1-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
-  (let ((hmac (make-hmac (flexi-streams:string-to-octets key :external-format (intern key-char-code)) :sha1))
-        (bytes (flexi-streams:string-to-octets str :external-format (intern char-code))))
-    (update-hmac hmac bytes)
-    (byte-array-to-hex-string (hmac-digest hmac))))
+  (create-hmac str key :sha1 key-char-code char-code)
+  ;; (let ((hmac (make-hmac (flexi-streams:string-to-octets key :external-format (intern key-char-code)) :sha1))
+  ;;       (bytes (flexi-streams:string-to-octets str :external-format (intern char-code))))
+  ;;   (update-hmac hmac bytes)
+  ;;   (byte-array-to-hex-string (hmac-digest hmac)))
+  )
+
+(defun sha256 (str &optional (char-code "ASCII"))
+  (make-hash-string :target-string str :hash-type "sha256" :char-code char-code))
+
+(defun sha256-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
+  (create-hmac str key :sha256 key-char-code char-code))
 
 
 (defun generate-trip (key &optional (char-code "ASCII"))
   (subseq (string-to-base64-string (sha1 (escape-sql-query key) char-code)) 0 12))
 
-;; this solt is sample. don't use production.
-(defvar *solt* "wqk0SZoDaZioQbuYzCM3mRBDFbj8FD9sx3ZX34wwhnMjtdAIM2tqonirJ7o8NuDpPkFIFbAacZYTsBRHzjmagGpZZb6aAZVvk5AcWJXWGRdTZlpo7vuXF3zvg1xp9yp0")
 
 (defmacro generate-target-string (ip date solt)
   `(concatenate 'string ,ip ,date ,solt))
 
-(defun generate-id (&key ipaddr date (key-char-code "ASCII") (char-code "ASCII"))
+(defun generate-id (&key ipaddr date (key-char-code "ASCII") (char-code "ASCII") solt)
   (let* ((separated-date (cl-ppcre:split " " date))
-         (hmac (sha1-hmac (concatenate 'string ipaddr
+         (hmac (sha256-hmac (concatenate 'string ipaddr
                                        (if (null separated-date)
                                            date
                                            (car separated-date)))
-                          *solt*
+                          solt
                           key-char-code
                           char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
