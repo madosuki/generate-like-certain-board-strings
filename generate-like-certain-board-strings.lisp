@@ -371,10 +371,10 @@
     (declare (ignore day daylight-p zone))
     (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0D" year month date hour minute second)))
 
-(defmacro make-hash-string (&key target-string hash-type char-code)
-  `(ironclad:byte-array-to-hex-string
-    (ironclad:digest-sequence (intern ,hash-type)
-                              (flexi-streams:string-to-octets ,target-string :external-format (intern ,char-code)))))
+(defun make-hash-string (&key target-string hash-type char-code)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence hash-type
+                             (flexi-streams:string-to-octets target-string :external-format (intern char-code)))))
 
 (defun create-hmac (target-string target-key hmac-type &optional (target-key-char-code "ASCII") (value-char-code "ASCII"))
   (let ((hmac (ironclad:make-hmac
@@ -385,7 +385,7 @@
     (ironclad:byte-array-to-hex-string (ironclad:hmac-digest hmac))))
 
 (defun sha1 (str &optional (char-code "ASCII"))
-  (make-hash-string :target-string str :hash-type "sha1" :char-code char-code))
+  (make-hash-string :target-string str :hash-type :sha1 :char-code char-code))
 
 (defun sha1-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
   (create-hmac str key :sha1 key-char-code char-code)
@@ -396,7 +396,7 @@
   )
 
 (defun sha256 (str &optional (char-code "ASCII"))
-  (make-hash-string :target-string str :hash-type "sha256" :char-code char-code))
+  (make-hash-string :target-string str :hash-type :sha256 :char-code char-code))
 
 (defun sha256-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
   (create-hmac str key :sha256 key-char-code char-code))
