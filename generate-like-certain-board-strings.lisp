@@ -297,17 +297,6 @@
             while line
             collect line))))
 
-(defun dat-to-html (dat)
-  (let ((count 1)
-        (result ""))
-    (dolist (x (dat-to-line-list dat))
-      (let ((tmp (cl-ppcre:split "<>" x)))
-        (when (= count 1)
-          (setq result (format nil "<h1>~A</h1>~%" (cadr (cdddr tmp)))))
-        (setq result (concatenate 'string result (format-dat-to-html count tmp))))
-      (incf count))
-    result))
-
 (defun dat-to-keyword-list (dat)
   (let ((count 1)
         (result nil)
@@ -343,6 +332,30 @@
         (push tmp-list result)
         (incf count)))
     (nreverse result)))
+
+(defun dat-to-html (dat)
+  (let ((dat-list-with-keyword (dat-to-keyword-list dat))
+        (result "")
+        (count 0))
+    (dolist (x dat-list-with-keyword)
+      (let ((title (member :titlte dat-list-with-keyword))
+            (name (member :name dat-list-with-keyword))
+            (trip (member :trip dat-list-with-keyword))
+            (email (member :email dat-list-with-keyword))
+            (date (member :date dat-list-with-keyword))
+            (id (member :id dat-list-with-keyword))
+            (text (member :text dat-list-with-keyword)))
+        (incf count)
+        (setq result
+              (if title
+                  (format nil
+                          "<h1>~A</h1>~%<dl>~%<dt id=\"~A\">~A 名前：<font color=\"#008800\"><b>~A</b>~A</font>[~A] 投稿日：~A ~A</dt>~%<dd id=\"thread\">~A</dd>~%"
+                          count count title name trip email date id text)
+                  (format nil
+                          "<dt id=\"~A\">~A 名前：<font color=\"#008800\"><b>~A</b>~A</font>[~A] 投稿日：~A ~A</dt>~%<dd id=\"thread\">~A</dd>~%"
+                          count count name trip email date id text)))))
+    (concatenate 'string result "</dl>")))
+
 
 (defun get-day-of-the-week (day)
   (cond ((= day 0)
