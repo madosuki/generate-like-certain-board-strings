@@ -14,6 +14,7 @@
    #:shape-text
    #:replace-not-available-char-when-cp932
    #:escape-sql-query
+   #:convert-html-special-chars
    #:apply-dice
    #:sha256))
 
@@ -48,10 +49,10 @@
     (set-extracted-text (url-list url-pos s "https*://[a-zA-Z0-9%\+./-]+" "<a href=\"" "\">" "</a>")
                         (unless (car url-list)
                           (return-from replace-http-or-https-url-to-a-tag-with-string s))
-                        (nreverse url-list)
-                        (nreverse url-pos)
-                        ;; (setq url-list (nreverse url-list))
-                        ;; (setq url-pos (nreverse url-pos))
+                        ;; (nreverse url-list)
+                        ;; (nreverse url-pos)
+                        (setq url-list (nreverse url-list))
+                        (setq url-pos (nreverse url-pos))
                         (dolist (x url-pos)
                           (let ((start (car x))
                                 (end (cdr x)))
@@ -70,10 +71,10 @@
     (set-extracted-text (linked-list matched-pos-list s "&gt;&gt;\\d{1,5}" "<a href=\"#" "\">" "</a>" 8 "&gt;&gt;")
                         (unless (car linked-list)
                           (return-from create-reply-link s))
-                        (nreverse linked-list)
-                        (nreverse matched-pos-list)
-                        ;; (setq linked-list (nreverse linked-list))
-                        ;; (setq matched-pos-list (nreverse matched-pos-list))
+                        ;; (nreverse linked-list)
+                        ;; (nreverse matched-pos-list)
+                        (setq linked-list (nreverse linked-list))
+                        (setq matched-pos-list (nreverse matched-pos-list))
                         (dolist (x matched-pos-list)
                           (let ((start (car x))
                                 (end (cdr x)))
@@ -156,12 +157,12 @@
 
 (defun escape-sql-query (text)
   (flet ((convert-table (c)
-           (if (or (equal #\" c) (equal #\' c) (equal #\( c) (equal #\) c) (equal #\= c) (equal #\\ c))
+           (if (or (equal #\' c)  (equal #\= c) (equal #\\ c))
                (char-to-reference-string c)
                (string c))))
     (let ((result ""))
       (dolist (x (coerce text 'list))
-        (setq result (concatenate 'string result (convert-table x))))
+        (setq result (format nil "~A~A" result (convert-table x))))
       result)))
 
 (defun convert-char-in-reference-to-html-special-chars-table (c)
@@ -173,31 +174,44 @@
     (#\BLACK_HEART_SUIT "&hearts;")
     (t (string c))))
 
-(defun replace-not-available-char-when-cp932 (text)
-  (flet ((replace-char-to-character-references (c)
-           (let ((tmp (convert-char-in-reference-to-html-special-chars-table c)))
-             (if (not (equal c tmp))
-                 (format nil "&#~A;" (char-code c))
-                 tmp))))
-    (let ((result ""))
-      (dolist (x (coerce text 'list))
-        (handler-case (sb-ext:string-to-octets (string x) :external-format :sjis)
-          (error (e)
-            (declare (ignore e))
-            (setq result (concatenate 'string result (replace-char-to-character-references x))))
-          (:no-error (c)
-            (declare (ignore c))
-            (setq result (concatenate 'string result (string x))))))
-      result)))
+
+(defun convert-html-special-chars (s)
+  (let ((tmp (coerce s 'list))
+        (result ""))
+    (dolist (c tmp)
+      (setq result (format nil "~A~A" result (convert-char-in-reference-to-html-special-chars-table c))))
+    result))
 
 (defun shape-text (text)
   (let ((tmp (cl-ppcre:split #\linefeed text))
         (result ""))
     (if (> (length tmp) 1)
         (dolist (x tmp)
-          (setq result (format nil "~A ~A <br>" result x)))
-        (setq result (format nil " ~A <br>" (car tmp))))
+          (setq result (format nil "~A ~A <br>" result (convert-html-special-chars x))))
+        (setq result (format nil " ~A <br>" (convert-html-special-chars (car tmp)))))
     result))
+
+(defun non-cp932-char-table (c)
+  (case c
+    (#\BLACK_HEART_SUIT "&hearts;")
+    (t c)))
+
+(defun replace-not-available-char-when-cp932 (text)
+  (let ((result ""))
+    (dolist (x (coerce text 'list))
+      (handler-case (sb-ext:string-to-octets (string x) :external-format :CP932)
+        (error (e)
+          (declare (ignore e))
+          (let ((tmp (non-cp932-char-table x)))
+            (setq result (concatenate 'string result
+                                      (if (stringp tmp)
+                                          tmp
+                                          (format nil "&#~A;" (char-code (string x))))))))
+        (:no-error (c)
+          (declare (ignore c))
+          (setq result (concatenate 'string result (string x))))))
+    result))
+
 
 (defun replace-other-line-to-lf (text)
   (let ((is-cr (cl-ppcre:scan #\return text))
@@ -416,7 +430,7 @@
 
 
 (defun generate-trip (key &optional (char-code "ASCII"))
-  (subseq (string-to-base64-string (sha1 (escape-sql-query key) char-code)) 0 12))
+  (subseq (string-to-base64-string (sha1 key char-code)) 0 12))
 
 
 (defmacro generate-target-string (ip date solt)
