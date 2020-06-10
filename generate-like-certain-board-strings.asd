@@ -7,7 +7,7 @@
   :name "generate-like-certain-board-strings"
   :version "0.01"
   :author "madosuki"
-  :licence "Apache 2.0"
+  :licence "LGPLv3"
   :description "The like certain board strings generator"
   :serial t
   :components ((:file "generate-like-certain-board-strings"))
