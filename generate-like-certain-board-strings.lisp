@@ -434,7 +434,7 @@
          (let* ((salt (subseq (concatenate 'string key "H.") 1 3))
                 (trip (crypt key salt))
                 (trip-size (length trip)))
-           (concatenate 'string "◆" (subseq trip (- trip-size 10) trip-size))))
+           (subseq trip (- trip-size 10) trip-size)))
         (t
          (subseq (string-to-base64-string (sha1 key char-code)) 0 12))))
 
