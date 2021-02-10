@@ -1,5 +1,5 @@
 (defpackage :generate-like-certain-board-strings
-  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64)
+  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64 :crypt)
   (:export
    #:generate-trip
    #:generate-id
@@ -430,7 +430,13 @@
 
 
 (defun generate-trip (key &optional (char-code "ASCII"))
-  (subseq (string-to-base64-string (sha1 key char-code)) 0 12))
+  (cond ((< (length key) 12)
+         (let* ((salt (subseq (concatenate 'string key "H.") 1 3))
+                (trip (crypt key salt))
+                (trip-size (length trip)))
+           (concatenate 'string "◆" (subseq trip (- trip-size 10) trip-size))))
+        (t
+         (subseq (string-to-base64-string (sha1 key char-code)) 0 12))))
 
 
 (defmacro generate-target-string (ip date solt)
