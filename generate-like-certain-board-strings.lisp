@@ -451,7 +451,7 @@
                                                       :test (lambda (a b)
                                                               (equal a (car b))))))
                                        (if tmp
-                                           (cadr tmp)
+                                           (cdr tmp)
                                            x)))
                            s))))
            (let* ((salt (subseq (concatenate 'string key "H.") 1 3))
