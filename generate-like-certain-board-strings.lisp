@@ -470,7 +470,7 @@
                             nil)))))
            (let ((bytes (get-bytes x)))
              (if (null bytes)
-                 nil
+                 ""
                  (let* ((converted (apply #'concatenate 'string (mapcar (lambda (x) (if (> x 127) "" (string (code-char x)))) bytes)))
                         (salt (subseq (concatenate 'string converted "H.") 1 3))
                         (replaced (replace2 (replace1 salt)))
