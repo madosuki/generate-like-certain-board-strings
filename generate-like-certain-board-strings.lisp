@@ -360,14 +360,35 @@
             (id (member :id x))
             (text (member :text x)))
         (incf count)
+        (if title
+            (setq title (cadr title))
+            (setq title ""))
+        (if name
+            (setq name (cadr name))
+            (setq name ""))
+        (if trip
+            (setq trip (cadr trip))
+            (setq trip ""))
+        (if email
+            (setq email (cadr email))
+            (setq email ""))
+        (if date
+            (setq date (cadr date))
+            (setq date ""))
+        (if id
+            (setq id (cadr id))
+            (setq id ""))
+        (if text
+            (setq text (cadr text))
+            (setq text ""))
         (setq result
               (if title
                   (format nil
                           "<h1>~A</h1>~%<dl>~%<dt id=\"~A\">~A 名前：<font color=\"#008800\"><b>~A</b>~A</font>[~A] 投稿日：~A ~A</dt>~%<dd id=\"thread\">~A</dd>~%"
-                          count count title name trip email date id text)
+                          title count count name trip email date id text)
                   (format nil
-                          "<dt id=\"~A\">~A 名前：<font color=\"#008800\"><b>~A</b>~A</font>[~A] 投稿日：~A ~A</dt>~%<dd id=\"thread\">~A</dd>~%"
-                          count count name trip email date id text)))))
+                          "~A<dt id=\"~A\">~A 名前：<font color=\"#008800\"><b>~A</b>~A</font>[~A] 投稿日：~A ~A</dt>~%<dd id=\"thread\">~A</dd>~%"
+                          result count count name trip email date id text)))))
     (concatenate 'string result "</dl>")))
 
 
