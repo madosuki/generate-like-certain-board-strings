@@ -198,18 +198,19 @@
 
 (defun replace-not-available-char-when-cp932 (text)
   (let ((result ""))
-    (dolist (x (coerce text 'list))
-      (handler-case (sb-ext:string-to-octets (string x) :external-format :CP932)
-        (error (e)
-          (declare (ignore e))
-          (let ((tmp (non-cp932-char-table x)))
-            (setq result (concatenate 'string result
-                                      (if (stringp tmp)
-                                          tmp
-                                          (format nil "&#~A;" (char-code (string x))))))))
-        (:no-error (c)
-          (declare (ignore c))
-          (setq result (concatenate 'string result (string x))))))
+    (dotimes (x (length text))
+      (let ((current-char (aref text x)))
+        (handler-case (sb-ext:string-to-octets (string current-char) :external-format :CP932)
+          (error (e)
+            (declare (ignore e))
+            (let ((tmp (non-cp932-char-table current-char)))
+              (setq result (concatenate 'string result
+                                        (if (stringp tmp)
+                                            tmp
+                                            (format nil "&#~A;" (char-code tmp)))))))
+          (:no-error (c)
+            (declare (ignore c))
+            (setq result (concatenate 'string result (string current-char)))))))
     result))
 
 
