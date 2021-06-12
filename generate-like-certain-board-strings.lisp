@@ -520,12 +520,11 @@
     (subseq (string-to-base64-string hmac) 0 8)))
 
 
-(defun detect-color-command (target)
-  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([a-zA-Z0-9]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
+(defmacro detect-color-command (target)
+  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([^\x{20-7E}]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
               target))
 
 (defun apply-color (target)
-  (format t "~%~A~%" target)
   (multiple-value-bind (l r begin end)
       (detect-color-command target)
     (unless (or l r begin end)
