@@ -521,20 +521,22 @@
 
 
 (defun detect-color-command (target)
-  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([a-zA-Z0-9]|[^\x{30-39}]|[^\x{41-5A}]+)&gt;"
+  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([a-zA-Z0-9]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
               target))
 
-(defun apply-color (target size)
+(defun apply-color (target)
+  (format t "~%~A~%" target)
   (multiple-value-bind (l r begin end)
       (detect-color-command target)
     (unless (or l r begin end)
       (return-from apply-color :error))
-    (let ((rgb-l-pos (aref begin 0))
-          (rgb-r-pos (aref end 0))
-          (text-l-pos (aref begin 1))
-          (text-r-pos (aref end 1))
-          (front (subseq target 0 l))
-          (back (subseq target r size)))
+    (let* ((size (length target))
+           (rgb-l-pos (aref begin 0))
+           (rgb-r-pos (aref end 0))
+           (text-l-pos (aref begin 1))
+           (text-r-pos (aref end 1))
+           (front (subseq target 0 l))
+           (back (subseq target r size)))
       (format nil "~A<font color=\"~A\">~A</font>~A"
               front
               (subseq target rgb-l-pos rgb-r-pos) (subseq target text-l-pos text-r-pos)
