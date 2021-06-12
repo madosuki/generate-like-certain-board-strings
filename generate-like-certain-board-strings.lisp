@@ -520,15 +520,15 @@
     (subseq (string-to-base64-string hmac) 0 8)))
 
 
-(defmacro detect-color-command (target)
-  `(ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([^\x{20-7E}]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
-               ,target))
+(defun detect-color-command (target)
+  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([^\x{20-7E}]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
+              target))
 
 (defun apply-color (target)
   (multiple-value-bind (l r begin end)
       (detect-color-command target)
     (unless (or l r begin end)
-      (return-from apply-color :error))
+      (return-from apply-color target))
     (let* ((size (length target))
            (rgb-l-pos (aref begin 0))
            (rgb-r-pos (aref end 0))
