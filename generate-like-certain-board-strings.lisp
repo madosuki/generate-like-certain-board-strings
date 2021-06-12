@@ -521,8 +521,8 @@
 
 
 (defmacro detect-color-command (target)
-  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([^\x{20-7E}]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
-              target))
+  `(ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([^\x{20-7E}]|[^\x{30-39}^\x{41-5A}^\x{61-7A}]+)&gt;"
+               ,target))
 
 (defun apply-color (target)
   (multiple-value-bind (l r begin end)
