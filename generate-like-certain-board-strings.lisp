@@ -521,7 +521,7 @@
 
 
 (defun detect-color-command (target)
-  (ppcre:scan "!color:rgb&gt;(#[a-zA-Z0-9]+)&lt;:&gt;([a-zA-Z0-9]|[^\x{30-39}]|[^\x{41-5A}]+)&lt;"
+  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;([a-zA-Z0-9]|[^\x{30-39}]|[^\x{41-5A}]+)&gt;"
               target))
 
 (defun apply-color (target size)
