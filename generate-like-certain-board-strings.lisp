@@ -537,10 +537,10 @@
                  (aref begin-pos-array 1) (aref end-pos-array 1))
             (setq result (format nil "~A~A<font color=\"~A\">~A</font>~A"
                                  result
-                                 (get-xsubseq-from-xsubseq x 0 start)
-                                 (get-xsubseq-from-xsubseq x (aref begin-pos-array 0) (aref end-pos-array 0))
-                                 (get-xsubseq-from-xsubseq x (aref begin-pos-array 1) (aref end-pos-array 1))
-                                 (get-xsubseq-from-xsubseq x (aref end-pos-array 1) end)
+                                 (subseq x 0 start)
+                                 (subseq x (aref begin-pos-array 0) (aref end-pos-array 0))
+                                 (subseq x (aref begin-pos-array 1) (aref end-pos-array 1))
+                                 (subseq x (aref end-pos-array 1) end)
                                  ))
             (setq result (format nil "~A~A" result x)))))
     result))
