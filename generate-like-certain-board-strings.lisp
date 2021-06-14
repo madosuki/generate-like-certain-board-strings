@@ -187,7 +187,7 @@
     (if (> (length tmp) 1)
         (dolist (x tmp)
           (setq result (format nil "~A ~A <br>" result (convert-html-special-chars x))))
-        (setq result (format nil " ~A <br>" (convert-html-special-chars (car tmp)))))
+        (setq result (format nil " ~A " (convert-html-special-chars (car tmp)))))
     result))
 
 (defun non-cp932-char-table (c)
