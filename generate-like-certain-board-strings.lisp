@@ -233,15 +233,20 @@
 
 (defun remove-space-in-head-and-end-of-line (text)
   (let ((tmp (cl-ppcre:split "<br>" text))
+        (tmp-size (length tmp))
+        (count 0)
         (result ""))
-    (if (> (length tmp) 1)
+    (if (> tmp-size 1)
+        (incf count)
         (dolist (x tmp)
           (let* ((size (length x))
                  (removed
-                   (if (> size 2)
-                       (subseq x 1 (- size 1))
+                   (if (> size 1)
+                       (if (>= count tmp-size)
+                           (subseq 0 (- size 1))
+                           (subseq x 1))
                        x)))
-            (setq result (format nil "~A~A&#8203;<br>&#8203;~%" result removed))))
+            (setq result (format nil "~A~A<br>~%" result removed))))
         (let ((x (car tmp)))
           (let* ((size (length x))
                  (check (if (< size 2)
@@ -344,10 +349,11 @@
                                                              (cadr date-and-id))) tmp-list))
                    (setq tmp-list (append (list :id (caddr date-and-id)) tmp-list))))
                 ((= tmp-count 3)
-                 (setq tmp-list (append (list :text
-                                              (create-reply-link
-                                               (replace-http-or-https-url-to-a-tag-with-string
-                                                (remove-space-in-head-and-end-of-line y)))) tmp-list))))
+                 (setq tmp-list
+                       (append (list :text
+                                     (create-reply-link
+                                      (replace-http-or-https-url-to-a-tag-with-string
+                                       (remove-space-in-head-and-end-of-line y)))) tmp-list))))
           (incf tmp-count))
         (push tmp-list result)
         (incf count)))
