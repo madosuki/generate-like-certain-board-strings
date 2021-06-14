@@ -5,7 +5,7 @@
 
 (defsystem :generate-like-certain-board-strings
   :name "generate-like-certain-board-strings"
-  :version "0.0.4"
+  :version "0.0.5"
   :author "madosuki"
   :licence "LGPLv3"
   :description "The like certain board strings generator"
