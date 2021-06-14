@@ -182,7 +182,7 @@
     result))
 
 (defun shape-text (text)
-  (let ((tmp (cl-ppcre:split #\linefeed (color-apply (apply-dice (convert-html-special-chars text)))))
+  (let ((tmp (cl-ppcre:split #\linefeed (apply-color (apply-dice (convert-html-special-chars text)))))
         (result ""))
     (if (> (length tmp) 1)
         (dolist (x tmp)
