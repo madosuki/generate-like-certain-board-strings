@@ -1,5 +1,5 @@
 (defpackage :generate-like-certain-board-strings
-  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64 :crypt)
+  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64 :crypt :xsubseq)
   (:export
    #:generate-trip
    #:generate-id

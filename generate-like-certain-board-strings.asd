@@ -11,5 +11,5 @@
   :description "The like certain board strings generator"
   :serial t
   :components ((:file "generate-like-certain-board-strings"))
-  :depends-on ("cl-base64" "ironclad" "cl-ppcre" "flexi-streams" "crypt"))
+  :depends-on ("cl-base64" "ironclad" "cl-ppcre" "flexi-streams" "crypt" "xsubseq"))
 
