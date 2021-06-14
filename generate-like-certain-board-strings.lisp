@@ -519,6 +519,9 @@
                           char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
 
+(defmacro get-xsubseq-from-xsubseq (s l r)
+  `(xsubseq:coerce-to-sequence (xsubseq:xsubseq ,s ,l ,r)))
+
 
 (defun apply-color (target)
   (let ((splited (cl-ppcre:split ":target-end:" target))
