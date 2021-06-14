@@ -242,9 +242,9 @@
           (let* ((size (length x))
                  (removed
                    (if (> size 1)
-                       (if (>= count tmp-size)
-                           (subseq 0 (- size 1))
-                           (subseq x 1))
+                       (progn (if (>= count tmp-size)
+                                  (subseq 0 (- size 1))
+                                  (subseq x 1)))
                        x)))
             (setq result (format nil "~A~A<br>~%" result removed))))
         (let ((x (car tmp)))
