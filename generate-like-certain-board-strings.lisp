@@ -520,23 +520,24 @@
     (subseq (string-to-base64-string hmac) 0 8)))
 
 
-(defun detect-color-command (target)
-  (ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;(.+)&gt;"
-              target))
-
 (defun apply-color (target)
-  (multiple-value-bind (l r begin end)
-      (detect-color-command target)
-    (unless (or l r begin end)
-      (return-from apply-color target))
-    (let* ((size (length target))
-           (rgb-l-pos (aref begin 0))
-           (rgb-r-pos (aref end 0))
-           (text-l-pos (aref begin 1))
-           (text-r-pos (aref end 1))
-           (front (subseq target 0 l))
-           (back (subseq target r size)))
-      (format nil "~A<font color=\"~A\">~A</font>~A"
-              front
-              (subseq target rgb-l-pos rgb-r-pos) (subseq target text-l-pos text-r-pos)
-              back))))
+  (let ((splited (cl-ppcre:split ":target-end:" target))
+        (result ""))
+    (dolist (x splited)
+      (multiple-value-bind (start end begin-pos-array end-pos-array)
+          (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:target-begin:(.+)"
+                         x)
+        (format t "~A, ~A~%~A, ~A~%" start end begin-pos-array end-pos-array)
+        (if (and start end
+                 begin-pos-array end-pos-array
+                 (aref begin-pos-array 0) (aref end-pos-array 0)
+                 (aref begin-pos-array 1) (aref end-pos-array 1))
+            (setq result (format nil "~A~A<font color=\"~A\">~A</font>~A"
+                                 result
+                                 (get-xsubseq-from-xsubseq x 0 start)
+                                 (get-xsubseq-from-xsubseq x (aref begin-pos-array 0) (aref end-pos-array 0))
+                                 (get-xsubseq-from-xsubseq x (aref begin-pos-array 1) (aref end-pos-array 1))
+                                 (get-xsubseq-from-xsubseq x (aref end-pos-array 1) end)
+                                 ))
+            (setq result (format nil "~A~A" result x)))))
+    result))
