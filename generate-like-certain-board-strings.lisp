@@ -526,7 +526,7 @@
 (defun apply-color (target)
   (let ((result ""))
     (multiple-value-bind (start end begin-pos-array end-pos-array)
-        (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;begin&gt;([\\w\\W]+?)&lt;end&gt;"
+        (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;begin&gt;([\\w\\W\\s\\t\\n]+?)&lt;end&gt;"
                        target)
       (unless (or start end
                   begin-pos-array end-pos-array)
