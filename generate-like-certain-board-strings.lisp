@@ -182,12 +182,12 @@
     result))
 
 (defun shape-text (text)
-  (let ((tmp (cl-ppcre:split #\linefeed (color-apply text)))
+  (let ((tmp (cl-ppcre:split #\linefeed (color-apply (apply-dice (convert-html-special-chars text)))))
         (result ""))
     (if (> (length tmp) 1)
         (dolist (x tmp)
-          (setq result (format nil "~A ~A <br>" result (convert-html-special-chars x))))
-        (setq result (format nil " ~A " (convert-html-special-chars (car tmp)))))
+          (setq result (format nil "~A ~A <br>" result x)))
+        (setq result (format nil " ~A " (car tmp))))
     result))
 
 (defun non-cp932-char-table (c)
@@ -526,7 +526,7 @@
 (defun apply-color (target)
   (let ((result ""))
     (multiple-value-bind (start end begin-pos-array end-pos-array)
-        (cl-ppcre:scan "!color:rgb<(#[a-zA-Z0-9]+)>:<begin>([\\w\\W\\s\\t\\n]+?)<end>"
+        (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;begin&gt;([\\w\\W\\s\\t\\n]+?)&lt;end&gt;"
                        target)
       (unless (or start end
                   begin-pos-array end-pos-array)
