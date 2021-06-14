@@ -524,11 +524,11 @@
 
 
 (defun apply-color (target)
-  (let ((splited (cl-ppcre:split ":target-end:" target))
+  (let ((splited (cl-ppcre:split "^:target-end:" target))
         (result ""))
     (dolist (x splited)
       (multiple-value-bind (start end begin-pos-array end-pos-array)
-          (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:target-begin:(.+)"
+          (cl-ppcre:scan "^!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:target-begin:(.+)"
                          x)
         ;; (format t "~A, ~A~%~A, ~A~%" start end begin-pos-array end-pos-array)
         (if (and start end
