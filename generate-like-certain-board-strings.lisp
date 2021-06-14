@@ -1,5 +1,5 @@
 (defpackage :generate-like-certain-board-strings
-  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64 :crypt :xsubseq)
+  (:use :cl :ironclad :cl-ppcre :flexi-streams :cl-base64 :crypt)
   (:export
    #:generate-trip
    #:generate-id
@@ -18,9 +18,13 @@
    #:apply-dice
    #:sha256
    #:apply-color))
-
-
 (in-package :generate-like-certain-board-strings)
+
+(defmacro subseq-with-error-handle (target l r)
+  (handler-case (subseq ,target ,l ,r)
+    (error (e)
+      (format t "~%~A~%" e)
+      ,target)))
 
 (defmacro set-extracted-text ((extracted-list pos-list s regex-string begin-tag-start begin-tag-end end-tag &optional (forward 0) (string-prefix "")) &body body)
   (let ((extracted-text (gensym))
@@ -31,7 +35,7 @@
     `(let ((,extracted-list nil)
            (,pos-list nil))
        (ppcre:do-matches (,start ,end ,regex-string ,s)
-         (let* ((,extracted-text (subseq ,s (+ ,forward ,start) ,end))
+         (let* ((,extracted-text (subseq-with-error-handle ,s (+ ,forward ,start) ,end))
                 (,tag-with-string (concatenate 'string
                                                ,begin-tag-start
                                                ,extracted-text
@@ -52,18 +56,18 @@
                         (unless (car url-list)
                           (return-from replace-http-or-https-url-to-a-tag-with-string s))
                         ;; (nreverse url-list)
-                        ;; (nreverse url-pos)
+                           ;; (nreverse url-pos)
                         (setq url-list (nreverse url-list))
                         (setq url-pos (nreverse url-pos))
                         (dolist (x url-pos)
                           (let ((start (car x))
                                 (end (cdr x)))
-                            (push (subseq s previous-end start) str-list)
+                            (push (subseq-with-error-handle s previous-end start) str-list)
                             (push (nth count url-list) str-list)
                             (setq previous-end end)
                             (incf count)))
                         (when (/= previous-end (length s))
-                          (push (subseq s previous-end (length s)) str-list))
+                          (push (subseq-with-error-handle s previous-end (length s)) str-list))
                         (format nil "~{~A~}" (nreverse str-list)))))
 
 (defun create-reply-link (s)
@@ -80,11 +84,11 @@
                         (dolist (x matched-pos-list)
                           (let ((start (car x))
                                 (end (cdr x)))
-                            (setq result (concatenate 'string result (subseq s previous-end start) (nth count linked-list)))
+                            (setq result (concatenate 'string result (subseq-with-error-handle s previous-end start) (nth count linked-list)))
                             (incf count)
                             (setq previous-end end)))
                         (when (and (/= previous-end 0) (/= previous-end (length s)))
-                          (setq result (concatenate 'string result (subseq s previous-end (length s)))))
+                          (setq result (concatenate 'string result (subseq-with-error-handle s previous-end (length s)))))
                         result)))
 
 (defun dice (dice-num max-num)
@@ -137,7 +141,7 @@
       (ppcre:scan "!(\\d{1,2})[dD](\\d{1,3})" text)
     (unless start-position
       (return-from apply-dice text))
-    (let* ((tmp-string (subseq text (aref group 0) end-position)))
+    (let* ((tmp-string (subseq-with-error-handle text (aref group 0) end-position)))
       (multiple-value-bind (left right)
           (search-num-on-dice-strings tmp-string)
         (unless (and (null left) (null right))
@@ -146,12 +150,12 @@
                     (begin-tag (if is-in-name "" "<b>"))
                     (end-tag (if is-in-name "" "</b>")))
                 (apply-dice
-                 (concatenate 'string (subseq text 0 start-position) begin-tag tmp end-tag (subseq text end-position))
+                 (concatenate 'string (subseq-with-error-handle text 0 start-position) begin-tag tmp end-tag (subseq-with-error-handle text end-position))
                  is-in-name))
               (apply-dice
-               (concatenate 'string (subseq text 0 start-position)
+               (concatenate 'string (subseq-with-error-handle text 0 start-position)
                             "[is over]"
-                            (subseq text end-position))
+                            (subseq-with-error-handle text end-position))
                is-in-name)))))))
 
 (defmacro char-to-reference-string (c)
@@ -240,10 +244,10 @@
     (if (> (length tmp) 1)
         (dolist (x tmp)
           (let* ((size (length x))
-                 (separated (subseq x 1 (- size 1))))
+                 (separated (subseq-with-error-handle x 1 (- size 1))))
             (setq result (format nil "~A~A<br>~%" result separated))))
         (let ((x (car tmp)))
-          (let ((check (subseq x 1 (- (length x) 1))))
+          (let ((check (subseq-with-error-handle x 1 (- (length x) 1))))
             (if (null check)
                 (return-from remove-space-in-head-and-end-of-line "")
                 (return-from remove-space-in-head-and-end-of-line check)))))
@@ -279,9 +283,9 @@
         (list str)
         (let ((name (if (= pos 0)
                         ""
-                        (subseq str 0 pos)))
+                        (subseq-with-error-handle str 0 pos)))
               (end-b-pos (- (length str) 3)))
-          (list name (subseq str (+ pos 4) end-b-pos))))))
+          (list name (subseq-with-error-handle str (+ pos 4) end-b-pos))))))
 
 (defun create-number-id-attribute (n)
   (concatenate 'string "id=\"" (write-to-string n) "\""))
@@ -496,13 +500,13 @@
              (if (null bytes)
                  ""
                  (let* ((converted (apply #'concatenate 'string (mapcar (lambda (x) (if (> x 127) "" (string (code-char x)))) bytes)))
-                        (salt (subseq (concatenate 'string converted "H.") 1 3))
+                        (salt (subseq-with-error-handle (concatenate 'string converted "H.") 1 3))
                         (replaced (replace2 (replace1 salt)))
                         (trip (crypt converted salt))
                         (trip-size (length trip)))
-                   (subseq trip (- trip-size 10) trip-size))))))
+                   (subseq-with-error-handle trip (- trip-size 10) trip-size))))))
         (t
-         (subseq (string-to-base64-string (sha1 key char-code)) 0 12))))
+         (subseq-with-error-handle (string-to-base64-string (sha1 key char-code)) 0 12))))
 
 
 (defmacro generate-target-string (ip date solt)
@@ -517,10 +521,7 @@
                           solt
                           key-char-code
                           char-code)))
-    (subseq (string-to-base64-string hmac) 0 8)))
-
-(defmacro get-xsubseq-from-xsubseq (s l r)
-  `(xsubseq:coerce-to-sequence (xsubseq:xsubseq ,s ,l ,r)))
+    (subseq-with-error-handle (string-to-base64-string hmac) 0 8)))
 
 
 (defun apply-color (target)
@@ -537,10 +538,10 @@
                  (aref begin-pos-array 1) (aref end-pos-array 1))
             (setq result (format nil "~A~A<font color=\"~A\">~A</font>~A"
                                  result
-                                 (subseq x 0 start)
-                                 (subseq x (aref begin-pos-array 0) (aref end-pos-array 0))
-                                 (subseq x (aref begin-pos-array 1) (aref end-pos-array 1))
-                                 (subseq x (aref end-pos-array 1) end)
+                                 (subseq-with-error-handle x 0 start)
+                                 (subseq-with-error-handle x (aref begin-pos-array 0) (aref end-pos-array 0))
+                                 (subseq-with-error-handle x (aref begin-pos-array 1) (aref end-pos-array 1))
+                                 (subseq-with-error-handle x (aref end-pos-array 1) end)
                                  ))
             (setq result (format nil "~A~A" result x)))))
     result))
