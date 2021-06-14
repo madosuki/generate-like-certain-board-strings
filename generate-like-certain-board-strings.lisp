@@ -524,22 +524,23 @@
 
 
 (defun apply-color (target)
-  (let ((splited (cl-ppcre:split ":target-end:" target))
-        (result ""))
-    (dolist (x splited)
-      (multiple-value-bind (start end begin-pos-array end-pos-array)
-          (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:target-begin:(.+)"
-                         x)
-        (if (and start end
-                 begin-pos-array end-pos-array
-                 (aref begin-pos-array 0) (aref end-pos-array 0)
-                 (aref begin-pos-array 1) (aref end-pos-array 1))
-            (setq result (format nil "~A~A<font color=\"~A\">~A</font>~A"
-                                 result
-                                 (subseq x 0 start)
-                                 (subseq x (aref begin-pos-array 0) (aref end-pos-array 0))
-                                 (subseq x (aref begin-pos-array 1) (aref end-pos-array 1))
-                                 (subseq x (aref end-pos-array 1) end)
-                                 ))
-            (setq result (format nil "~A~A" result x)))))
-    result))
+  (let ((result ""))
+    (multiple-value-bind (start end begin-pos-array end-pos-array)
+        (cl-ppcre:scan "!color:rgb&lt;(#[a-zA-Z0-9]+)&gt;:&lt;begin&gt;([\\w\\W]+?)&lt;end&gt;"
+                       target)
+      (unless (or start end
+                  begin-pos-array end-pos-array)
+        (return-from apply-color target))
+      (if (and start end
+               begin-pos-array end-pos-array
+               (aref begin-pos-array 0) (aref end-pos-array 0)
+               (aref begin-pos-array 1) (aref end-pos-array 1))
+          (setq result (format nil "~A~A<font color=\"~A\">~A</font>~A"
+                               result
+                               (subseq target 0 start)
+                               (subseq target (aref begin-pos-array 0) (aref end-pos-array 0))
+                               (subseq target (aref begin-pos-array 1) (aref end-pos-array 1))
+                               (subseq target end (length target))
+                               ))
+          (setq result (format nil "~A~A" result target))))
+    (apply-color result)))
