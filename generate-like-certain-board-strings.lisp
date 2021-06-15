@@ -12,7 +12,6 @@
    #:replace-other-line-to-lf
    #:shape-text
    #:replace-not-available-char-when-cp932
-   #:escape-sql-query
    #:convert-html-special-chars
    #:apply-dice
    #:sha256
@@ -153,16 +152,6 @@
 
 (defmacro char-to-reference-string (c)
   `(format nil "&#~A;" (char-code ,c)))
-
-(defun escape-sql-query (text)
-  (flet ((convert-table (c)
-           (if (or (equal #\' c)  (equal #\= c) (equal #\\ c))
-               (char-to-reference-string c)
-               (string c))))
-    (let ((result ""))
-      (dolist (x (coerce text 'list))
-        (setq result (format nil "~A~A" result (convert-table x))))
-      result)))
 
 (defun convert-char-in-reference-to-html-special-chars-table (c)
   (case c
