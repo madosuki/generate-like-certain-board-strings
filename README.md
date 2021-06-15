@@ -32,5 +32,5 @@ apply escape html special char then apply color command then apply dice command 
 For MESSAGE Text.  
 
   
-- replace-not-available-char-when-cp932 (text)
+- replace-not-available-char-when-cp932 (text)  
 Replace non cp932 chars to Numeric character reference.  
