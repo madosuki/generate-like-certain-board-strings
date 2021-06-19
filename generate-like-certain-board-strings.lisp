@@ -484,18 +484,12 @@
                         (if (> size 2)
                             (set-bytes size tmp)
                             nil)))))
-           (let ((bytes (get-bytes key)))
+           (let ((bytes (sb-ext:string-to-octets key :external-format :sjis)))
              (if (null bytes)
                  ""
-                 (let* (
-                        ;; (converted (apply #'concatenate 'string (mapcar (lambda (x)
-                        ;;                                                   (if (> x 127)
-                        ;;                                                       ""
-                        ;;                                                       (string (code-char x))))
-                        ;;                                                 bytes)))
-                        (salt (subseq (concatenate 'string key "H.") 1 3))
+                 (let* ((salt (subseq (concatenate 'string key "H.") 1 3))
                         (replaced (replace2 (replace1 salt)))
-                        (trip (crypt key salt))
+                        (trip (crypt bytes salt))
                         (trip-size (length trip)))
                    (subseq trip (- trip-size 10) trip-size))))))
         (t
