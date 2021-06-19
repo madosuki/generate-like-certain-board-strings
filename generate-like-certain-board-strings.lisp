@@ -495,7 +495,7 @@
                         ;;                                                 bytes)))
                         (salt (subseq (concatenate 'string key "H.") 1 3))
                         (replaced (replace2 (replace1 salt)))
-                        (trip (crypt converted salt))
+                        (trip (crypt key salt))
                         (trip-size (length trip)))
                    (subseq trip (- trip-size 10) trip-size))))))
         (t
