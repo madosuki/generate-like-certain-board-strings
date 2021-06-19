@@ -487,7 +487,12 @@
            (let ((bytes (get-bytes key)))
              (if (null bytes)
                  ""
-                 (let* ((converted (apply #'concatenate 'string (mapcar (lambda (x) (if (> x 127) "" (string (code-char x)))) bytes)))
+                 (let* ((converted (apply #'concatenate 'string (mapcar (lambda (x)
+                                                                          (if (> x 127)
+                                                                              (string
+                                                                               (code-char (- 255 x)))
+                                                                              (string (code-char x))))
+                                                                        bytes)))
                         (salt (subseq (concatenate 'string converted "H.") 1 3))
                         (replaced (replace2 (replace1 salt)))
                         (trip (crypt converted salt))
