@@ -484,7 +484,7 @@
                         (if (> size 2)
                             (set-bytes size tmp)
                             nil)))))
-           (let ((bytes (get-bytes x)))
+           (let ((bytes (get-bytes key)))
              (if (null bytes)
                  ""
                  (let* ((converted (apply #'concatenate 'string (mapcar (lambda (x) (if (> x 127) "" (string (code-char x)))) bytes)))
