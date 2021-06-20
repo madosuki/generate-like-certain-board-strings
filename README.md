@@ -1,6 +1,15 @@
 # This is 2chan like strings generator library.
 
-## function list
+## Dependents Libary List
+- cl-base64  
+- ironclad  
+- cl-ppcre  
+- flexi-streams  
+- crypt  
+About this, use madosuki/cl-crypt instead original. For sake of multibyte.  
+- xsubseq  
+
+## Function List
 - generate-trip (key &optional (char-code "ASCII"))  
 This is create trip function.  
 Argument of key is trip key means "#Test".  
