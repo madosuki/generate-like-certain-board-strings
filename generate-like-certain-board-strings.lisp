@@ -470,12 +470,13 @@
                                            (cdr tmp)
                                            x)))
                            s))))
-           (let ((bytes (sb-ext:string-to-octets key :external-format :sjis)))
+           (let* ((replaced-non-cp932-code (replace-not-available-char-when-cp932 key))
+                  (bytes (sb-ext:string-to-octets replaced-non-cp932-code :external-format :sjis)))
              (if (null bytes)
                  ""
                  (let* ((salt (let* ((bytes
                                        (sb-ext:string-to-octets
-                                        (concatenate 'string key "H.")
+                                        (concatenate 'string replaced-non-cp932-code "H.")
                                         :external-format :sjis))
                                      (result (make-array 2
                                                          :element-type '(unsigned-byte 8)
