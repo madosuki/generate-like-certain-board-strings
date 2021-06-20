@@ -469,29 +469,30 @@
                                        (if tmp
                                            (cdr tmp)
                                            x)))
-                           s)))
-                  (get-bytes (x)
-                    (let* ((tmp (sb-ext:string-to-octets x :external-format :sjis))
-                           (size (length tmp)))
-                      (labels ((set-bytes (size source &optional (current 1) (result nil))
-                                 (cond ((or (= current size) (> current 9))
-                                        (reverse result))
-                                       (t
-                                        (if (null result)
-                                            (setq result (list (aref source current)))
-                                            (push (aref source current) result))
-                                        (set-bytes size source (1+ current) result)))))
-                        (if (> size 2)
-                            (set-bytes size tmp)
-                            nil)))))
+                           s))))
            (let ((bytes (sb-ext:string-to-octets key :external-format :sjis)))
              (if (null bytes)
                  ""
-                 (let* ((salt (subseq (concatenate 'string key "H.") 1 3))
+                 (let* ((salt (let* ((bytes
+                                       (sb-ext:string-to-octets
+                                        (concatenate 'string target "H.")
+                                        :external-format :sjis))
+                                     (result (make-array 2
+                                                         :element-type '(unsigned-byte 8)
+                                                         :initial-element 0))
+                                     (second-element (aref bytes 1))
+                                     (third-element (aref bytes 2)))
+                                (if (> second-element 127) ;; check whether over ascii code
+                                    (setf (aref result 0) 46) ;; 46 is char code of #\.
+                                    (setf (aref result 0) second-element))
+                                (if (> third-element 127)
+                                    (setf (aref result 1) 46)
+                                    (setf (aref result 1) third-element))
+                                (sb-ext:octets-to-string result :external-format :ASCII)))
                         (replaced (replace2 (replace1 salt)))
                         (trip (crypt bytes salt))
                         (trip-size (length trip)))
-                   (subseq trip (- trip-size 10) trip-size))))))
+                   (subseq trip (- trip-size 10)))))))
         (t
          (subseq (string-to-base64-string (sha1 key char-code)) 0 12))))
 
