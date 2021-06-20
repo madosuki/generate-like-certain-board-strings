@@ -475,7 +475,7 @@
                  ""
                  (let* ((salt (let* ((bytes
                                        (sb-ext:string-to-octets
-                                        (concatenate 'string target "H.")
+                                        (concatenate 'string key "H.")
                                         :external-format :sjis))
                                      (result (make-array 2
                                                          :element-type '(unsigned-byte 8)
