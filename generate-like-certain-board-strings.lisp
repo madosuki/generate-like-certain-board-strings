@@ -16,8 +16,7 @@
    #:apply-dice
    #:sha256
    #:apply-color
-   #:time-error-10sec-msg
-   #:time-error-24h-msg))
+   #:time-error-msg))
 (in-package :generate-like-certain-board-strings)
 
 (defmacro set-extracted-text ((extracted-list pos-list s regex-string begin-tag-start begin-tag-end end-tag &optional (forward 0) (string-prefix "")) &body body)
@@ -560,10 +559,6 @@
    (format nil "~A<br><hr>(Samba24-2.13)"
            message)))
 
-(defun time-error-10sec-msg (message)
-  (let ((text (create-time-restrict-message-for-monazilla message)))
-    `(200 (:content-type "text/html" :content-length ,(length text)) ,text)))
-
-(defun time-error-24h-msg (message)
+(defun time-error-msg (message)
   (let ((text (create-time-restrict-message-for-monazilla message)))
     `(200 (:content-type "text/html" :content-length ,(length text)) ,text)))
