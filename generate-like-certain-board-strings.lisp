@@ -547,8 +547,8 @@
               :external-format :sjis)
     #+allegro (excl:string-to-octets final-text :external-format :shiftjis :null-terminate nil)
     #+clisp (ext:convert-string-to-bytes final-text charset:sjis)
-    #+lispword (external-format:encode-lisp-string final-text :shiftjis)
-    #- nil))
+    #+lispworks (external-format:encode-lisp-string final-text :shiftjis)
+    #+ nil))
 
 (declaim (inline create-error-message-with-sjis))
 (defun create-error-message-with-sjis (message)
