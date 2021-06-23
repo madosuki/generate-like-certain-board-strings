@@ -15,7 +15,9 @@
    #:convert-html-special-chars
    #:apply-dice
    #:sha256
-   #:apply-color))
+   #:apply-color
+   #:time-error-10sec-msg
+   #:time-error-24h-msg))
 (in-package :generate-like-certain-board-strings)
 
 (defmacro set-extracted-text ((extracted-list pos-list s regex-string begin-tag-start begin-tag-end end-tag &optional (forward 0) (string-prefix "")) &body body)
@@ -534,3 +536,35 @@
                                ))
           (setq result (format nil "~A~A" result target))))
     (apply-color result)))
+
+(declaim (inline create-sjis-html))
+(defun create-sjis-html (body)
+  (let ((final-text
+          (format nil "<html><head><meta http-equive=\"Conent-Type\" content=\"text/html; charset=x-sjis\"></head><body>~A</body></html>"
+                  body)))
+    #+sbcl (sb-ext:string-to-octets
+              final-text
+              :external-format :sjis)
+    #+allegro (excl:string-to-octets final-text :external-format :shiftjis :null-terminate nil)
+    #+clisp (ext:convert-string-to-bytes final-text charset:sjis)
+    #+lispword (external-format:encode-lisp-string final-text :shiftjis)
+    #- nil))
+
+(declaim (inline create-error-message-with-sjis))
+(defun create-error-message-with-sjis (message)
+  (create-sjis-html (format nil "<!-- 2ch_X:error -->~A"
+                            message)))
+
+(declaim (inline create-time-restrict-message-for-monazilla))
+(defun create-time-restrict-message-for-monazilla (message)
+  (create-error-message-with-sjis
+   (format nil "~A<br><hr>(Samba24-2.13)"
+           message)))
+
+(defun time-error-10sec-msg (message)
+  (let ((text (create-time-restrict-message-for-monazilla message)))
+    `(200 (:content-type "text/html" :content-length ,(length text)) ,text)))
+
+(defun time-error-24h-msg (message)
+  (let ((text (create-time-restrict-message-for-monazilla message)))
+    `(200 (:content-type "text/html" :content-length ,(length text)) ,text)))
