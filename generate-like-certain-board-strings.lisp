@@ -539,7 +539,7 @@
 (declaim (inline create-sjis-html))
 (defun create-sjis-html (body)
   (let ((final-text
-          (format nil "<html><head><meta http-equive=\"Conent-Type\" content=\"text/html; charset=x-sjis\"></head><body>~A</body></html>"
+          (format nil "<html><head><meta http-equive=\"Conent-Type\" content=\"text/html; charset=x-sjis\"><title>ＥＲＲＯＲ！</title></head><body>~A</body></html>"
                   body)))
     #+sbcl (sb-ext:string-to-octets
               final-text
