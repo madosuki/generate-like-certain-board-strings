@@ -501,7 +501,7 @@
                                     (setf (aref result 1) third-element))
                                 (sb-ext:octets-to-string result :external-format :ASCII)))
                         (replaced (replace2 (replace1 salt)))
-                        (trip (crypt bytes salt))
+                        (trip (crypt (for-0x80-problem bytes) salt))
                         (trip-size (length trip)))
                    (subseq trip (- trip-size 10)))))))
         (t
