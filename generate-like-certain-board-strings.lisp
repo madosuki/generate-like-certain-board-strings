@@ -473,7 +473,7 @@
                            s)))
                   (for-0x80-problem (b-array)
                     (let ((tmp (make-array (length b-array)
-                                           :element-type '(vector (unsigned-byte 8))
+                                           :element-type '(unsigned-byte 8)
                                            :initial-element 0)))
                       (dotimes (x (length b-array))
                         (if (= 128 (aref b-array x))
