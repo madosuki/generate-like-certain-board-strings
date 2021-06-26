@@ -472,7 +472,7 @@
                                            x)))
                            s)))
                   (for-0x80-problem (b-array)
-                    (let ((tmp (make-array (length b-array)
+                    (let ((tmp (make-array (length (coerce b-array 'list))
                                            :element-type '(vector (unsigned-byte 8))
                                            :initial-contents 0)))
                       (dotimes (x (length b-array))
