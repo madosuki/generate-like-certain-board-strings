@@ -499,16 +499,16 @@
          (subseq (string-to-base64-string (sha1 key char-code)) 0 12))))
 
 
-(defmacro generate-target-string (ip date solt)
-  `(concatenate 'string ,ip ,date ,solt))
+(defmacro generate-target-string (ip date salt)
+  `(concatenate 'string ,ip ,date ,salt))
 
-(defun generate-id (&key ipaddr date (key-char-code "ASCII") (char-code "ASCII") solt)
+(defun generate-id (&key ipaddr date (key-char-code "ASCII") (char-code "ASCII") salt)
   (let* ((separated-date (cl-ppcre:split " " date))
          (hmac (sha256-hmac (concatenate 'string ipaddr
                                        (if (null separated-date)
                                            date
                                            (car separated-date)))
-                          solt
+                          salt
                           key-char-code
                           char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
