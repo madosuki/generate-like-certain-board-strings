@@ -429,21 +429,29 @@
       (ironclad:update-hmac hmac bytes)
     (ironclad:byte-array-to-hex-string (ironclad:hmac-digest hmac))))
 
-(defun sha1 (str &optional (char-code :ASCII))
-  (make-hash-string :target-string str :hash-type :sha1 :char-code char-code))
+(defun sha1 (&key target (char-code :ASCII))
+  (unless target
+    (return-from sha1 nil))
+  (make-hash-string :target-string target :hash-type :sha1 :char-code char-code))
 
-(defun sha1-hmac (str key &optional (key-char-code :ASCII) (char-code :ASCII))
-  (create-hmac :target-string str
+(defun sha1-hmac (&key target key (key-char-code :ASCII) (char-code :ASCII))
+  (unless (or target key)
+    (return-from sha1-hmac nil))
+  (create-hmac :target-string target
                :target-key key
                :hmac-type :sha1
                :target-key-char-code key-char-code
                :value-char-code char-code))
 
-(defun sha256 (str &optional (char-code :ASCII))
-  (make-hash-string :target-string str :hash-type :sha256 :char-code char-code))
+(defun sha256 (&key target (char-code :ASCII))
+  (unless target
+    (return-from sha256 nil))
+  (make-hash-string :target-string target :hash-type :sha256 :char-code char-code))
 
-(defun sha256-hmac (str key &optional (key-char-code :ASCII) (char-code :ASCII))
-  (create-hmac :target-string str
+(defun sha256-hmac (&key target key (key-char-code :ASCII) (char-code :ASCII))
+  (unless target
+    (return-from sha256-hmac nil))
+  (create-hmac :target-string target
                :target-key key
                :hmac-type :sha256
                :target-key-char-code key-char-code
@@ -517,13 +525,14 @@
 
 (defun generate-id (&key ipaddr date (key-char-code :ASCII) (char-code :ASCII) salt)
   (let* ((separated-date (cl-ppcre:split " " date))
-         (hmac (sha256-hmac (concatenate 'string ipaddr
-                                       (if (null separated-date)
-                                           date
-                                           (car separated-date)))
-                          salt
-                          key-char-code
-                          char-code)))
+         (hmac (sha256-hmac :target (format nil "~A~A" 
+                                            (if (null separated-date)
+                                                date
+                                                (car separated-date))
+                                            ipaddr)
+                            :key salt
+                            :key-char-code key-char-code
+                            :char-code char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
 
 
