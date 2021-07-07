@@ -15,6 +15,7 @@
    #:convert-html-special-chars
    #:apply-dice
    #:sha256
+   #:sha256-hmac
    #:apply-color
    #:time-error-msg))
 (in-package :generate-like-certain-board-strings)
