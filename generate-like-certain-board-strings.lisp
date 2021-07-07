@@ -515,7 +515,7 @@
 (defmacro generate-target-string (ip date salt)
   `(concatenate 'string ,ip ,date ,salt))
 
-(defun generate-id (&key ipaddr date (key-char-code "ASCII") (char-code "ASCII") salt)
+(defun generate-id (&key ipaddr date (key-char-code :ASCII) (char-code :ASCII) salt)
   (let* ((separated-date (cl-ppcre:split " " date))
          (hmac (sha256-hmac (concatenate 'string ipaddr
                                        (if (null separated-date)
