@@ -419,32 +419,35 @@
 (defun make-hash-string (&key target-string hash-type char-code)
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence hash-type
-                             (flexi-streams:string-to-octets target-string :external-format (intern char-code)))))
+                             (flexi-streams:string-to-octets target-string :external-format char-code))))
 
-(defun create-hmac (target-string target-key hmac-type &optional (target-key-char-code "ASCII") (value-char-code "ASCII"))
+(defun create-hmac (&key target-string target-key hmac-type (target-key-char-code :ASCII) (value-char-code :ASCII))
   (let ((hmac (ironclad:make-hmac
-               (flexi-streams:string-to-octets target-key :external-format (intern target-key-char-code))
+               (flexi-streams:string-to-octets target-key :external-format target-key-char-code)
                hmac-type))
-        (bytes (flexi-streams:string-to-octets target-string :external-format (intern value-char-code))))
+        (bytes (flexi-streams:string-to-octets target-string :external-format value-char-code)))
       (ironclad:update-hmac hmac bytes)
     (ironclad:byte-array-to-hex-string (ironclad:hmac-digest hmac))))
 
-(defun sha1 (str &optional (char-code "ASCII"))
+(defun sha1 (str &optional (char-code :ASCII))
   (make-hash-string :target-string str :hash-type :sha1 :char-code char-code))
 
-(defun sha1-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
-  (create-hmac str key :sha1 key-char-code char-code)
-  ;; (let ((hmac (make-hmac (flexi-streams:string-to-octets key :external-format (intern key-char-code)) :sha1))
-  ;;       (bytes (flexi-streams:string-to-octets str :external-format (intern char-code))))
-  ;;   (update-hmac hmac bytes)
-  ;;   (byte-array-to-hex-string (hmac-digest hmac)))
-  )
+(defun sha1-hmac (str key &optional (key-char-code :ASCII) (char-code :ASCII))
+  (create-hmac :target-string str
+               :target-key key
+               :hmac-type :sha1
+               :target-key-char-code key-char-code
+               :value-char-code char-code))
 
-(defun sha256 (str &optional (char-code "ASCII"))
+(defun sha256 (str &optional (char-code :ASCII))
   (make-hash-string :target-string str :hash-type :sha256 :char-code char-code))
 
-(defun sha256-hmac (str key &optional (key-char-code "ASCII") (char-code "ASCII"))
-  (create-hmac str key :sha256 key-char-code char-code))
+(defun sha256-hmac (str key &optional (key-char-code :ASCII) (char-code :ASCII))
+  (create-hmac :target-string str
+               :target-key key
+               :hmac-type :sha256
+               :target-key-char-code key-char-code
+               :value-char-code char-code))
 
 
 (defun generate-trip (key &optional (char-code "ASCII"))
