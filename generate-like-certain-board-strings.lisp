@@ -49,8 +49,6 @@
     (set-extracted-text (url-list url-pos s "https*://[a-zA-Z0-9%\+./-]+" "<a href=\"" "\">" "</a>")
                         (unless (car url-list)
                           (return-from replace-http-or-https-url-to-a-tag-with-string s))
-                        ;; (nreverse url-list)
-                           ;; (nreverse url-pos)
                         (setq url-list (nreverse url-list))
                         (setq url-pos (nreverse url-pos))
                         (dolist (x url-pos)
@@ -71,8 +69,6 @@
     (set-extracted-text (linked-list matched-pos-list s "&gt;&gt;\\d{1,5}" "<a href=\"#" "\">" "</a>" 8 "&gt;&gt;")
                         (unless (car linked-list)
                           (return-from create-reply-link s))
-                        ;; (nreverse linked-list)
-                        ;; (nreverse matched-pos-list)
                         (setq linked-list (nreverse linked-list))
                         (setq matched-pos-list (nreverse matched-pos-list))
                         (dolist (x matched-pos-list)
@@ -122,8 +118,6 @@
           (if is-end-of-left
               (push x right-num-list)
               (push x left-num-list))))
-    ;; (nreverse left-num-list)
-    ;; (nreverse right-num-list)
     (setq left-num-list (nreverse left-num-list))
     (setq right-num-list (nreverse right-num-list))
     (values
@@ -166,11 +160,11 @@
 
 
 (defun convert-html-special-chars (s)
-  (let ((tmp (coerce s 'list))
-        (result ""))
-    (dolist (c tmp)
-      (setq result (format nil "~A~A" result (convert-char-in-reference-to-html-special-chars-table c))))
-    result))
+  (format nil "~{~A~}"
+          (map 'list
+               #'(lambda (c)
+                   (convert-char-in-reference-to-html-special-chars-table c))
+               s)))
 
 (defun shape-text (text)
   (let ((tmp (cl-ppcre:split #\linefeed (apply-color (apply-dice (convert-html-special-chars text)))))
