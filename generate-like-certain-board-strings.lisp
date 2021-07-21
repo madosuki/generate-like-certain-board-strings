@@ -552,9 +552,10 @@
     (apply-color result)))
 
 (declaim (inline create-sjis-html))
-(defun create-sjis-html (body)
+(defun create-sjis-html (&key title body)
   (let ((final-text
-          (format nil "<html><head><meta http-equive=\"Conent-Type\" content=\"text/html; charset=x-sjis\"><title>ＥＲＲＯＲ！</title></head><body>~A</body></html>"
+          (format nil "<html><head><meta http-equive=\"Conent-Type\" content=\"text/html; charset=x-sjis\"><title>~A</title></head><body>~A</body></html>"
+                  title
                   body)))
     #+sbcl (sb-ext:string-to-octets
               final-text
@@ -565,8 +566,9 @@
 
 (declaim (inline create-error-message-with-sjis))
 (defun create-error-message-with-sjis (message)
-  (create-sjis-html (format nil "<!-- 2ch_X:error -->~A"
-                            message)))
+  (create-sjis-html :title "ＥＲＲＯＲ！"
+                    :body (format nil "<!-- 2ch_X:error -->~A"
+                                  message)))
 
 (declaim (inline create-time-restrict-message-for-monazilla))
 (defun create-time-restrict-message-for-monazilla (message)
