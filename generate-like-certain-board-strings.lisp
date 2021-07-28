@@ -350,9 +350,10 @@
             (id (member :id x))
             (text (member :text x)))
         (incf count)
-        (if title
-            (setq title (cadr title))
-            (setq title ""))
+        (when (and (= count 1) (null title))
+          (return-from dat-to-html :not-valid-dat))
+        (when title
+          (setq title (cadr title)))
         (if name
             (setq name (cadr name))
             (setq name ""))
@@ -409,11 +410,14 @@
     (declare (ignore day daylight-p zone))
     (format nil "~4,'0D-~2,'0D-~2,'0D ~2,'0D:~2,'0D:~2,'0D" year month date hour minute second)))
 
+
+(declaim (inline make-hash-string))
 (defun make-hash-string (&key target-string hash-type char-code)
   (ironclad:byte-array-to-hex-string
    (ironclad:digest-sequence hash-type
                              (flexi-streams:string-to-octets target-string :external-format char-code))))
 
+(declaim (inline create-hmac))
 (defun create-hmac (&key target-string target-key hmac-type (target-key-char-code :ASCII) (value-char-code :ASCII))
   (let ((hmac (ironclad:make-hmac
                (flexi-streams:string-to-octets target-key :external-format target-key-char-code)
