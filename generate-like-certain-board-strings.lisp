@@ -81,6 +81,7 @@
                           (setq result (concatenate 'string result (subseq s previous-end (length s)))))
                         result)))
 
+(declaim (inline dice))
 (defun dice (dice-num max-num)
   (labels ((dice-function (d-n m-num &optional (result nil) (count 0))
              (if (= count d-n)
@@ -91,6 +92,7 @@
                        (dice-function d-n m-num (list dice-result) (1+ count)))))))
     (dice-function dice-num max-num)))
 
+(declaim (inline generate-dice-string))
 (defun generate-dice-string (d-n m-num dice-result-list)
   (let ((dice-result-string ""))
     (if (> d-n 1)
@@ -107,13 +109,14 @@
         (setq dice-result-string (write-to-string (car dice-result-list))))
     (concatenate 'string "[" (write-to-string d-n) "D" (write-to-string m-num) ":" dice-result-string "]")))
 
+(declaim (inline search-num-on-dice-strings))
 (defun search-num-on-dice-strings (s)
   (let ((left-num-list nil)
         (right-num-list nil)
         (s-list (coerce s 'list))
         (is-end-of-left nil))
     (dolist (x s-list)
-      (if (or (equal #\D x) (equal #\d x))
+      (if (or (eql #\D x) (eql #\d x))
           (setq is-end-of-left t)
           (if is-end-of-left
               (push x right-num-list)
@@ -124,6 +127,7 @@
      (parse-integer (coerce left-num-list 'string) :junk-allowed t)
      (parse-integer (coerce right-num-list 'string) :junk-allowed t))))
 
+(declaim (inline apply-dice))
 (defun apply-dice (text &optional (is-in-name nil))
   (multiple-value-bind (start-position end-position group)
       (ppcre:scan "!(\\d{1,2})[dD](\\d{1,3})" text)
@@ -149,6 +153,7 @@
 (defmacro char-to-reference-string (c)
   `(format nil "&#~A;" (char-code ,c)))
 
+(declaim (inline convert-char-in-reference-to-html-special-chars-table))
 (defun convert-char-in-reference-to-html-special-chars-table (c)
   (case c
     (#\& "&amp;")
@@ -158,13 +163,14 @@
     (#\BLACK_HEART_SUIT "&hearts;")
     (t (string c))))
 
-
+(declaim (inline convert-html-special-chars))
 (defun convert-html-special-chars (s)
   (format nil "~{~A~}"
           (map 'list
                #'convert-char-in-reference-to-html-special-chars-table
                s)))
 
+(declaim (inline (shape-text)))
 (defun shape-text (text)
   (let ((tmp (cl-ppcre:split #\linefeed (apply-color (apply-dice (convert-html-special-chars text)))))
         (result ""))
@@ -174,11 +180,13 @@
         (setq result (format nil " ~A " (car tmp))))
     result))
 
+(declaim (inline non-cp932-char-table))
 (defun non-cp932-char-table (c)
   (case c
     (#\BLACK_HEART_SUIT "&hearts;")
     (t c)))
 
+(declaim (inline replace-not-available-char-when-cp932))
 (defun replace-not-available-char-when-cp932 (text)
   (let ((result ""))
     (dotimes (x (length text))
@@ -196,7 +204,7 @@
             (setq result (concatenate 'string result (string current-char)))))))
     result))
 
-
+(declaim (inline replace-other-line-to-lf))
 (defun replace-other-line-to-lf (text)
   (let ((is-cr (cl-ppcre:scan #\return text))
         (is-lf (cl-ppcre:scan #\linefeed text)))
@@ -209,12 +217,15 @@
           (t
            text))))
 
+(declaim (inline replace-br-tag-to-newline))
 (defun replace-br-tag-to-newline (text)
   (cl-ppcre:regex-replace-all "<br>" text (concatenate 'string "<br>" (string #\linefeed))))
 
+(declaim (inline replace-hyphen-to-slash))
 (defun replace-hyphen-to-slash (text)
   (cl-ppcre:regex-replace-all "-" text "/"))
 
+(declaim (inline remove-space-in-head-and-end-of-line))
 (defun remove-space-in-head-and-end-of-line (text)
   (let* ((tmp (cl-ppcre:split "<br>" text))
          (tmp-size (length tmp))
@@ -245,12 +256,13 @@
          (t
           ,target)))
 
+(declaim (inline separate-trip-from-input))
 (defun separate-trip-from-input (name)
   (let ((left nil)
         (right nil)
         (is-trip nil))
     (dolist (x (coerce name 'list))
-      (when (and (equal x #\#) (eql is-trip nil))
+      (when (and (eql x #\#) (eq is-trip nil))
         (setq is-trip t))
       (if is-trip
           (push x right)
@@ -259,6 +271,7 @@
         (list (coerce (nreverse left) 'string) (coerce (nreverse right) 'string))
         (list (coerce (nreverse left) 'string)))))
 
+(declaim (inline separate-trip-from-dat))
 (defun separate-trip-from-dat (str)
   (let ((pos (cl-ppcre:scan "</b>" str)))
     (if (null pos)
@@ -269,9 +282,11 @@
               (end-b-pos (- (length str) 3)))
           (list name (subseq str (+ pos 4) end-b-pos))))))
 
+(declaim (inline create-number-id-attribute))
 (defun create-number-id-attribute (n)
   (concatenate 'string "id=\"" (write-to-string n) "\""))
 
+;; no is res number. l is string of line.
 (defmacro format-dat-to-html (no l)
   (let ((date-and-id (gensym))
         (name (gensym))
@@ -290,6 +305,7 @@
                (caddr ,date-and-id)
                ,text))))
 
+(declaim (inline dat-to-line-list))
 (defun dat-to-line-list (dat)
   (with-open-file (input dat
                          :direction :input
@@ -300,6 +316,7 @@
             while line
             collect line))))
 
+(declaim (inline dat-to-keyword-list))
 (defun dat-to-keyword-list (dat)
   (let ((count 1)
         (result nil)
@@ -337,6 +354,7 @@
         (incf count)))
     (nreverse result)))
 
+(declaim (inline dat-to-html))
 (defun dat-to-html (dat)
   (let ((dat-list-with-keyword (dat-to-keyword-list dat))
         (result "")
@@ -399,11 +417,16 @@
         ((= day 6)
          "Sun")))
 
-;; get unixtime
-(defun get-unix-time (universal-time)
-  (- universal-time (encode-universal-time 0 0 0 1 1 1970 0)))
+;; get unixtime from universal-time
+(declaim (inline get-unix-time))
+(defun get-unix-time (&optional (universal-time nil))
+  (- (if universal-time
+         universal-time
+         (get-universal-time))
+     (encode-universal-time 0 0 0 1 1 1970 0)))
 
 ;; get formated current datetime from universal-time.
+(declaim (inline get-current-datetime))
 (defun get-current-datetime (universal-time &optional (is-diff nil) (diff 0))
   (multiple-value-bind (second minute hour date month year day daylight-p zone)
       (if is-diff (decode-universal-time universal-time diff) (decode-universal-time universal-time))
@@ -440,11 +463,13 @@
                :target-key-char-code key-char-code
                :value-char-code char-code))
 
+(declaim (inline sha256))
 (defun sha256 (&key target (char-code :ASCII))
   (unless target
     (return-from sha256 nil))
   (make-hash-string :target-string target :hash-type :sha256 :char-code char-code))
 
+(declaim (inline sha256-hmac))
 (defun sha256-hmac (&key target key (key-char-code :ASCII) (char-code :ASCII))
   (unless target
     (return-from sha256-hmac nil))
@@ -454,7 +479,7 @@
                :target-key-char-code key-char-code
                :value-char-code char-code))
 
-
+(declaim (inilne generate-trip))
 (defun generate-trip (key &optional (char-code "ASCII"))
   (cond ((< (length key) 12)
          (labels ((replace1 (s) (ppcre:regex-replace "[^\.-z]" s "."))
@@ -520,6 +545,7 @@
 (defmacro generate-target-string (ip date salt)
   `(concatenate 'string ,ip ,date ,salt))
 
+(declaim (inline generate-id))
 (defun generate-id (&key ipaddr date (key-char-code :ASCII) (char-code :ASCII) salt)
   (let* ((separated-date (cl-ppcre:split " " date))
          (hmac (sha256-hmac :target (format nil "~A~A" 
@@ -532,7 +558,7 @@
                             :char-code char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
 
-
+(declaim (inline apply-color))
 (defun apply-color (target)
   (let ((result ""))
     (multiple-value-bind (start end begin-pos-array end-pos-array)
