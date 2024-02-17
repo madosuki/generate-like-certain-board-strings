@@ -530,14 +530,14 @@
 (defmacro generate-target-string (ip date salt)
   `(concatenate 'string ,ip ,date ,salt))
 
-(defun generate-id (&key ipaddr date (key-char-code :ASCII) (char-code :ASCII) salt)
+(defun generate-id (&key ipaddr date (key-char-code :ASCII) (char-code :ASCII) sec-key)
   (let* ((separated-date (cl-ppcre:split " " date))
          (hmac (sha256-hmac :target (format nil "~A~A" 
                                             (if (null separated-date)
                                                 date
                                                 (car separated-date))
                                             ipaddr)
-                            :key salt
+                            :key sec-key
                             :key-char-code key-char-code
                             :char-code char-code)))
     (subseq (string-to-base64-string hmac) 0 8)))
